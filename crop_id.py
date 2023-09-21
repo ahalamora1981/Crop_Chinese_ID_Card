@@ -18,6 +18,9 @@ class Crop_ID():
         if output_path not in os.listdir('./'):
             os.mkdir(output_path)
 
+        if 'temp_folder' not in os.listdir('./'):
+            os.mkdir('temp_folder')
+
         self.output_path = output_path
     
     def crop(self, input_path, img_file):
@@ -47,13 +50,13 @@ class Crop_ID():
             else:
                 pass
 
-            cv2.imwrite('temp/temp.jpg', image)
+            cv2.imwrite('temp_folder/temp.jpg', image)
 
             _, width = image.shape[:2]
 
             # 判断是否需要上下180度翻转
             if '正面' in img_path:
-                result = face_detection('temp/temp.jpg')
+                result = face_detection('temp_folder/temp.jpg')
                 if result['boxes'][0][0] < width/2:
                     print(f'{img_path} 翻转180度')
                     image = self.get_rotate_image_180(image)
@@ -73,10 +76,10 @@ class Crop_ID():
 
     def get_mask(self, img_path):
         result = salient_detect(img_path)
-        cv2.imwrite('./temp/mask.jpg',result[OutputKeys.MASKS])
+        cv2.imwrite('./temp_folder/mask.jpg',result[OutputKeys.MASKS])
         
         # 读取掩码图像，确保它与原始图像具有相同的尺寸
-        mask_image = cv2.imread('./temp/mask.jpg', cv2.IMREAD_GRAYSCALE)
+        mask_image = cv2.imread('./temp_folder/mask.jpg', cv2.IMREAD_GRAYSCALE)
         mask_image = cv2.GaussianBlur(mask_image, (5, 5), 0)
         
         return mask_image
@@ -222,7 +225,7 @@ if __name__ == '__main__':
     salient_detect = pipeline(Tasks.semantic_segmentation, model='damo/cv_u2net_salient-detection')
     face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_resnet_facedetection_scrfd10gkps')
 
-    input_path = '身份证'
+    input_path = 'id_cards'
     img_list = os.listdir(input_path)
 
     crop_id = Crop_ID(output_path='output')
